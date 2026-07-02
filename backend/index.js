@@ -8,10 +8,18 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://expense-tracker-eight-sigma-35.vercel.app'
-  ],
+  origin: function (origin, callback) {
+    // Izinkan semua origin vercel.app dan localhost
+    if (
+      !origin ||
+      origin.includes('vercel.app') ||
+      origin.includes('localhost')
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
