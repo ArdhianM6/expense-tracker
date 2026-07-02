@@ -3,13 +3,31 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
 
+// ==================== SECURITY ====================
+app.use(helmet());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Terlalu banyak request, coba lagi 15 menit lagi' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Terlalu banyak percobaan login, coba lagi 15 menit lagi' }
+});
+
+app.use(limiter);
+
 app.use(cors({
   origin: function (origin, callback) {
-    // Izinkan semua origin vercel.app dan localhost
     if (
       !origin ||
       origin.includes('vercel.app') ||
@@ -25,7 +43,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// Koneksi ke PostgreSQL
+// ==================== DATABASE ====================
 const pool = new Pool(
   process.env.DATABASE_URL
     ? {
@@ -41,7 +59,7 @@ const pool = new Pool(
       }
 );
 
-// Middleware: cek token JWT
+// ==================== MIDDLEWARE JWT ====================
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Akses ditolak' });
@@ -57,13 +75,28 @@ const authenticate = (req, res, next) => {
 // ==================== AUTH ====================
 
 // Register
-app.post('/auth/register', async (req, res) => {
+app.post('/auth/register', authLimiter, async (req, res) => {
   const { name, email, password } = req.body;
+
+  // Validasi input
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Semua field wajib diisi' });
+  }
+  if (name.trim().length < 2) {
+    return res.status(400).json({ error: 'Nama minimal 2 karakter' });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Format email tidak valid' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password minimal 6 karakter' });
+  }
+
   try {
     const hashed = await bcrypt.hash(password, 10);
     const result = await pool.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email',
-      [name, email, hashed]
+      [name.trim(), email.toLowerCase().trim(), hashed]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -76,10 +109,16 @@ app.post('/auth/register', async (req, res) => {
 });
 
 // Login
-app.post('/auth/login', async (req, res) => {
+app.post('/auth/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
+
+  // Validasi input
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email dan password wajib diisi' });
+  }
+
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
     const user = result.rows[0];
     if (!user) return res.status(400).json({ error: 'Email atau password salah' });
 
@@ -96,6 +135,14 @@ app.post('/auth/login', async (req, res) => {
 // Update profile
 app.put('/auth/profile', authenticate, async (req, res) => {
   const { name, currentPassword, newPassword } = req.body;
+
+  if (!name || name.trim().length < 2) {
+    return res.status(400).json({ error: 'Nama minimal 2 karakter' });
+  }
+  if (newPassword && newPassword.length < 6) {
+    return res.status(400).json({ error: 'Password baru minimal 6 karakter' });
+  }
+
   try {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.userId]);
     const user = result.rows[0];
@@ -107,12 +154,12 @@ app.put('/auth/profile', authenticate, async (req, res) => {
       const hashed = await bcrypt.hash(newPassword, 10);
       await pool.query(
         'UPDATE users SET name=$1, password=$2 WHERE id=$3',
-        [name, hashed, req.userId]
+        [name.trim(), hashed, req.userId]
       );
     } else {
       await pool.query(
         'UPDATE users SET name=$1 WHERE id=$2',
-        [name, req.userId]
+        [name.trim(), req.userId]
       );
     }
 
@@ -159,6 +206,17 @@ app.get('/transactions', authenticate, async (req, res) => {
 // Tambah transaksi
 app.post('/transactions', authenticate, async (req, res) => {
   const { type, amount, category, description, date } = req.body;
+
+  if (!type || !amount || !date) {
+    return res.status(400).json({ error: 'Tipe, jumlah, dan tanggal wajib diisi' });
+  }
+  if (!['income', 'expense'].includes(type)) {
+    return res.status(400).json({ error: 'Tipe harus income atau expense' });
+  }
+  if (isNaN(amount) || amount <= 0) {
+    return res.status(400).json({ error: 'Jumlah harus angka positif' });
+  }
+
   try {
     const result = await pool.query(
       'INSERT INTO transactions (user_id, type, amount, category, description, date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
@@ -173,6 +231,11 @@ app.post('/transactions', authenticate, async (req, res) => {
 // Edit transaksi
 app.put('/transactions/:id', authenticate, async (req, res) => {
   const { type, amount, category, description, date } = req.body;
+
+  if (!type || !amount || !date) {
+    return res.status(400).json({ error: 'Tipe, jumlah, dan tanggal wajib diisi' });
+  }
+
   try {
     const result = await pool.query(
       'UPDATE transactions SET type=$1, amount=$2, category=$3, description=$4, date=$5 WHERE id=$6 AND user_id=$7 RETURNING *',
@@ -257,7 +320,6 @@ app.get('/transactions/annual', authenticate, async (req, res) => {
 
 // ==================== BUDGETS ====================
 
-// Ambil budget
 app.get('/budgets', authenticate, async (req, res) => {
   const { month, year } = req.query;
   try {
@@ -271,9 +333,13 @@ app.get('/budgets', authenticate, async (req, res) => {
   }
 });
 
-// Simpan/update budget
 app.post('/budgets', authenticate, async (req, res) => {
   const { category, amount, month, year } = req.body;
+
+  if (!category || !amount || !month || !year) {
+    return res.status(400).json({ error: 'Semua field budget wajib diisi' });
+  }
+
   try {
     const result = await pool.query(
       `INSERT INTO budgets (user_id, category, amount, month, year)
