@@ -5,7 +5,7 @@ const CATEGORIES_EXPENSE = [
   'Kesehatan', 'Belanja', 'Tagihan', 'Lainnya'
 ];
 
-function BudgetManager({ budgets, transactions, onSave }) {
+function BudgetManager({ budgets, transactions, onSave, readOnly = false }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ category: 'Makanan', limit: '' });
 
@@ -42,7 +42,7 @@ function BudgetManager({ budgets, transactions, onSave }) {
       {open && (
         <div className="budget-body">
           {/* Form set budget */}
-          <form onSubmit={handleSave} className="budget-form">
+          {!readOnly && <form onSubmit={handleSave} className="budget-form">
             <select
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
@@ -60,7 +60,7 @@ function BudgetManager({ budgets, transactions, onSave }) {
               required
             />
             <button type="submit">Set</button>
-          </form>
+          </form>}
 
           {/* Daftar budget yang sudah diset */}
           {Object.keys(budgets).length === 0 ? (
@@ -77,7 +77,7 @@ function BudgetManager({ budgets, transactions, onSave }) {
                   <div key={category} className="budget-item">
                     <div className="budget-item-top">
                       <span className="budget-cat">{category}</span>
-                      <div className="budget-item-right">
+                      <div className={readOnly ? 'budget-item-right readonly' : 'budget-item-right'}>
                         <span className={`budget-status ${isOver ? 'over' : isWarning ? 'warning' : ''}`}>
                           {isOver ? '🚨 Melebihi!' : isWarning ? '⚠️ Hampir habis' : '✅ Aman'}
                         </span>

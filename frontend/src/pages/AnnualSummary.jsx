@@ -13,8 +13,9 @@ const MONTH_NAMES = [
 
 function AnnualSummary({ onBack }) {
   const [year, setYear] = useState(new Date().getFullYear());
+  const years = Array.from({ length: 8 }, (_, index) => new Date().getFullYear() - 5 + index);
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [chartType, setChartType] = useState('bar');
 
   const format = (num) =>
@@ -28,19 +29,14 @@ function AnnualSummary({ onBack }) {
       style: 'currency', currency: 'IDR', minimumFractionDigits: 0,
     }).format(num);
 
-  const fetchAnnual = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get(`/transactions/annual?year=${year}`);
-      setData(res.data);
-    } catch {
-      console.error('Gagal fetch data tahunan');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchAnnual(); }, [year]);
+  useEffect(() => {
+    let ignore = false;
+    api.get(`/transactions/annual?year=${year}`)
+      .then(({ data: result }) => { if (!ignore) setData(result); })
+      .catch(() => { if (!ignore) console.error('Gagal fetch data tahunan'); })
+      .finally(() => { if (!ignore) setLoading(false); });
+    return () => { ignore = true; };
+  }, [year]);
 
   const chartData = data?.monthly.map((m) => ({
     name: MONTH_NAMES[m.month - 1],
@@ -61,10 +57,10 @@ function AnnualSummary({ onBack }) {
         <h2>📅 Ringkasan Tahunan</h2>
         <select
           value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
+          onChange={(e) => { setLoading(true); setYear(Number(e.target.value)); }}
           className="annual-year-select"
         >
-          {[2023, 2024, 2025, 2026].map((y) => (
+          {years.map((y) => (
             <option key={y} value={y}>{y}</option>
           ))}
         </select>

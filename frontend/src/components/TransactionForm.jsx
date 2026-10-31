@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const CATEGORIES_EXPENSE = ['Makanan', 'Transportasi', 'Hiburan', 'Kesehatan', 'Belanja', 'Tagihan', 'Lainnya'];
 const CATEGORIES_INCOME = ['Gaji', 'Freelance', 'Investasi', 'Hadiah', 'Lainnya'];
@@ -6,25 +6,19 @@ const CATEGORIES_INCOME = ['Gaji', 'Freelance', 'Investasi', 'Hadiah', 'Lainnya'
 function TransactionForm({ onSubmit, editData, onCancelEdit }) {
   const today = new Date().toISOString().split('T')[0];
 
-  const [form, setForm] = useState({
-    type: 'expense',
-    amount: '',
-    category: 'Makanan',
-    description: '',
-    date: today,
-  });
-
-  useEffect(() => {
-    if (editData) {
-      setForm({
+  const [form, setForm] = useState(() => editData ? {
         type: editData.type,
         amount: editData.amount,
         category: editData.category,
         description: editData.description || '',
         date: editData.date.split('T')[0],
+      } : {
+        type: 'expense',
+        amount: '',
+        category: 'Makanan',
+        description: '',
+        date: today,
       });
-    }
-  }, [editData]);
 
   const handleChange = (e) => {
     const updated = { ...form, [e.target.name]: e.target.value };

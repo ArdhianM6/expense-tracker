@@ -17,18 +17,26 @@ function Login({ onLogin }) {
     setLoading(true);
     try {
       if (isRegister) {
-        await api.post('/auth/register', form);
+        await api.post('/auth/register', { ...form, name: form.name.trim(), email: form.email.trim().toLowerCase() });
         setIsRegister(false);
         setForm({ name: '', email: '', password: '' });
-        alert('Registrasi berhasil! Silakan login.');
+        setError('Akun berhasil dibuat. Silakan login dengan email dan password baru.');
       } else {
-        const res = await api.post('/auth/login', form);
+        const res = await api.post('/auth/login', { email: form.email.trim().toLowerCase(), password: form.password });
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         onLogin(res.data.user);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Terjadi kesalahan');
+      const status = err.response?.status;
+      setError(
+        err.response?.data?.error ||
+        (status === 429
+          ? 'Terlalu banyak percobaan. Tunggu 15 menit sebelum mencoba lagi.'
+          : err.response
+            ? 'Login gagal. Periksa kembali email dan password.'
+            : 'Tidak dapat terhubung ke server. Pastikan backend dan database berjalan.')
+      );
     } finally {
       setLoading(false);
     }
@@ -66,7 +74,7 @@ function Login({ onLogin }) {
             onChange={handleChange}
             required
           />
-          {error && <p className="error-msg">{error}</p>}
+          {error && <p className={error.startsWith('Akun berhasil') ? 'success-msg' : 'error-msg'}>{error}</p>}
           <button type="submit" disabled={loading}>
             {loading ? 'Memproses...' : isRegister ? 'Daftar' : 'Login'}
           </button>

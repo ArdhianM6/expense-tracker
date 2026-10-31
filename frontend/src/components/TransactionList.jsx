@@ -2,121 +2,142 @@ import { useState } from 'react';
 import ConfirmModal from './ConfirmModal';
 
 const PAGE_SIZE = 8;
+const formatCurrency = (value) => new Intl.NumberFormat('id-ID', {
+  style: 'currency', currency: 'IDR', maximumFractionDigits: 0,
+}).format(value);
 
-function TransactionList({ transactions, onEdit, onDelete }) {
+function TransactionList({ transactions, onEdit, onDelete, month, year, currentUserId, role }) {
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [confirmId, setConfirmId] = useState(null);
 
-  const format = (num) =>
-    new Intl.NumberFormat('id-ID', {
-      style: 'currency', currency: 'IDR', minimumFractionDigits: 0,
-    }).format(num);
-
-  const formatDate = (dateStr) =>
-    new Date(dateStr).toLocaleDateString('id-ID', {
-      day: 'numeric', month: 'long', year: 'numeric',
-    });
-
-  const filtered = transactions.filter((t) => {
-    const q = search.toLowerCase();
-    return (
-      t.category.toLowerCase().includes(q) ||
-      (t.description || '').toLowerCase().includes(q)
-    );
-  });
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const categories = [...new Set(transactions.map((item) => item.category).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'id'));
+  const query = search.trim().toLocaleLowerCase('id');
+  const filtered = transactions.filter((item) => (
+    `${item.category || ''} ${item.description || ''}`.toLocaleLowerCase('id').includes(query)
+    && (typeFilter === 'all' || item.type === typeFilter)
+    && (categoryFilter === 'all' || item.category === categoryFilter)
+  ));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const handleSearch = (val) => {
-    setSearch(val);
-    setPage(1); // reset ke halaman 1 saat search
+  const exportCsv = () => {
+    const columns = ['Tanggal', 'Jenis', 'Kategori', 'Keterangan', 'Jumlah (IDR)'];
+    const safeCell = (value) => {
+      const text = String(value ?? '');
+      const protectedText = /^[-=+@\t\r]/.test(text) ? `'${text}` : text;
+      return `"${protectedText.replaceAll('"', '""')}"`;
+    };
+    const rows = filtered.map((item) => [
+      String(item.date).slice(0, 10),
+      item.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+      item.category,
+      item.description,
+      item.amount,
+    ]);
+    const csv = `\uFEFF${[columns, ...rows].map((row) => row.map(safeCell).join(',')).join('\r\n')}`;
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `transaksi-${year}-${String(month).padStart(2, '0')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
-  const handleConfirmDelete = () => {
+  const confirmDelete = () => {
     onDelete(confirmId);
     setConfirmId(null);
   };
 
   return (
-    <div className="transaction-list">
-      <h3>📋 Riwayat Transaksi</h3>
-
-      {/* Search */}
-      <div className="search-wrap">
-        <input
-          type="text"
-          placeholder="🔍 Cari kategori atau keterangan..."
-          value={search}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="search-input"
-        />
-        {search && (
-          <button className="search-clear" onClick={() => handleSearch('')}>×</button>
-        )}
+    <section className="transaction-list" aria-labelledby="transaction-title">
+      <div className="transaction-heading">
+        <div>
+          <h2 id="transaction-title">Riwayat transaksi</h2>
+          <p>{filtered.length} dari {transactions.length} transaksi</p>
+        </div>
+        <button className="export-button" onClick={exportCsv} disabled={!filtered.length}>
+          Ekspor CSV
+        </button>
       </div>
 
-      {/* Empty state */}
+      <div className="transaction-tools">
+        <label className="search-field">
+          <span className="visually-hidden">Cari transaksi</span>
+          <span className="search-symbol" aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            placeholder="Cari kategori atau keterangan"
+            value={search}
+            onChange={(event) => { setSearch(event.target.value); setPage(1); }}
+            className="search-input"
+          />
+        </label>
+        <label className="filter-field">
+          <span>Jenis</span>
+          <select value={typeFilter} onChange={(event) => { setTypeFilter(event.target.value); setPage(1); }}>
+            <option value="all">Semua jenis</option>
+            <option value="expense">Pengeluaran</option>
+            <option value="income">Pemasukan</option>
+          </select>
+        </label>
+        <label className="filter-field">
+          <span>Kategori</span>
+          <select value={categoryFilter} onChange={(event) => { setCategoryFilter(event.target.value); setPage(1); }}>
+            <option value="all">Semua kategori</option>
+            {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+          </select>
+        </label>
+      </div>
+
       {transactions.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-illustration">📭</div>
-          <h4>Belum ada transaksi</h4>
-          <p>Tambahkan transaksi pertamamu menggunakan form di sebelah kiri.</p>
+          <h3>Belum ada transaksi</h3>
+          <p>Catat transaksi pertama untuk mulai melihat ringkasan keuangan.</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-illustration">🔍</div>
-          <h4>Tidak ditemukan</h4>
-          <p>Tidak ada transaksi yang cocok dengan "<strong>{search}</strong>"</p>
+          <h3>Tidak ada hasil yang cocok</h3>
+          <p>Ubah kata kunci atau filter untuk melihat transaksi lain.</p>
         </div>
       ) : (
         <>
-          {search && (
-            <p className="search-result-info">
-              Menampilkan {filtered.length} dari {transactions.length} transaksi
-            </p>
-          )}
-
-          {paginated.map((t) => (
-            <div key={t.id} className={`transaction-item ${t.type}`}>
-              <div className="transaction-left">
-                <span className="transaction-category">{t.category}</span>
-                <span className="transaction-desc">{t.description || '-'}</span>
-                <span className="transaction-date">{formatDate(t.date)}</span>
-              </div>
-              <div className="transaction-right">
-                <span className="transaction-amount">
-                  {t.type === 'income' ? '+' : '-'} {format(t.amount)}
-                </span>
-                <div className="transaction-btns">
-                  <button onClick={() => onEdit(t)} title="Edit">✏️</button>
-                  <button onClick={() => setConfirmId(t.id)} title="Hapus">🗑️</button>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* Pagination */}
+          <div className="transaction-table-scroll">
+            <table className="transaction-table">
+              <thead><tr><th>Tanggal</th><th>Transaksi</th><th>Kategori</th><th>Jumlah</th><th>Aksi</th></tr></thead>
+              <tbody>
+                {paginated.map((item) => (
+                  <tr key={item.id}>
+                    <td>{new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(item.date))}</td>
+                    <td>
+                      <span className="table-description">{item.description || item.category || 'Transaksi'}</span>
+                      <span className="table-type">{item.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</span>
+                    </td>
+                    <td><span className="category-pill">{item.category || 'Lainnya'}</span></td>
+                    <td className={`table-amount ${item.type}`}>
+                      {item.type === 'income' ? '+' : '−'}{formatCurrency(item.amount)}
+                    </td>
+                    <td>
+                      {(role === 'admin' || Number(item.user_id) === Number(currentUserId)) ? (
+                        <div className="transaction-btns">
+                          <button onClick={() => onEdit(item)} aria-label={`Edit ${item.description || item.category || 'transaksi'}`}>Edit</button>
+                          <button onClick={() => setConfirmId(item.id)} aria-label={`Hapus ${item.description || item.category || 'transaksi'}`}>Hapus</button>
+                        </div>
+                      ) : <span aria-label="Hanya admin yang dapat mengubah">—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {totalPages > 1 && (
-            <div className="pagination">
-              <button
-                onClick={() => setPage((p) => p - 1)}
-                disabled={page === 1}
-              >← Prev</button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={page === p ? 'page-active' : ''}
-                >{p}</button>
-              ))}
-
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={page === totalPages}
-              >Next →</button>
+            <div className="pagination" aria-label="Halaman transaksi">
+              <button onClick={() => setPage((current) => current - 1)} disabled={page === 1}>Sebelumnya</button>
+              <span>Halaman {page} dari {totalPages}</span>
+              <button onClick={() => setPage((current) => current + 1)} disabled={page === totalPages}>Berikutnya</button>
             </div>
           )}
         </>
@@ -124,10 +145,10 @@ function TransactionList({ transactions, onEdit, onDelete }) {
 
       <ConfirmModal
         message={confirmId ? 'Yakin ingin menghapus transaksi ini?' : null}
-        onConfirm={handleConfirmDelete}
+        onConfirm={confirmDelete}
         onCancel={() => setConfirmId(null)}
       />
-    </div>
+    </section>
   );
 }
 

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1584" height="396" viewBox="0 0 1584 396" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">Ardhian Maulana Tanjung — Full-Stack Developer</title>
+  <desc id="description">LinkedIn profile banner with full stack technologies and contact links.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1584" y2="396" gradientUnits="userSpaceOnUse"><stop stop-color="#07111F"/><stop offset=".58" stop-color="#0B1D36"/><stop offset="1" stop-color="#12366B"/></linearGradient>
+    <linearGradient id="blue" x1="355" y1="80" x2="810" y2="245" gradientUnits="userSpaceOnUse"><stop stop-color="#83D5FF"/><stop offset="1" stop-color="#568BFF"/></linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="matrix(-370 295 -250 -313 1550 0)" gradientUnits="userSpaceOnUse"><stop stop-color="#3983F4" stop-opacity=".32"/><stop offset="1" stop-color="#3983F4" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" stroke="#A8C8F5" stroke-opacity=".05"/><circle cx="1" cy="1" r="1" fill="#9BC7FF" fill-opacity=".22"/></pattern>
+  </defs>
+  <rect width="1584" height="396" fill="url(#bg)"/>
+  <rect width="1584" height="396" fill="url(#glow)"/>
+  <rect width="1584" height="396" fill="url(#grid)"/>
+  <path d="M0 1H1584M0 395H1584" stroke="#C6DCFC" stroke-opacity=".17"/>
+
+  <!-- The lower-left remains quiet where LinkedIn places the profile portrait. -->
+  <path d="M350 46v247" stroke="url(#blue)" stroke-width="4" stroke-linecap="round"/>
+  <text x="380" y="73" fill="#95CFFF" font-family="Inter, Poppins, Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="2">SOFTWARE ENGINEER · INDONESIA</text>
+  <text x="377" y="132" fill="#F5F8FF" font-family="Inter, Poppins, Arial, sans-serif" font-size="43" font-weight="700" letter-spacing="-1.25">Ardhian Maulana Tanjung</text>
+  <text x="380" y="183" fill="url(#blue)" font-family="Inter, Poppins, Arial, sans-serif" font-size="30" font-weight="650">Full-Stack Developer</text>
+  <text x="382" y="211" fill="#BDCCE0" font-family="Inter, Poppins, Arial, sans-serif" font-size="13.5">Building complete web products — from thoughtful interfaces to reliable data.</text>
+
+  <g font-family="Inter, Poppins, Arial, sans-serif" font-size="10.5" font-weight="500">
+    <rect x="380" y="229" width="98" height="24" rx="12" fill="#102B48" stroke="#67C7FF" stroke-opacity=".48"/><text x="429" y="245" text-anchor="middle" fill="#D6EDFF">React · Next.js</text>
+    <rect x="487" y="229" width="100" height="24" rx="12" fill="#102B48" stroke="#67C7FF" stroke-opacity=".48"/><text x="537" y="245" text-anchor="middle" fill="#D6EDFF">Node.js · PHP</text>
+    <rect x="596" y="229" width="113" height="24" rx="12" fill="#102B48" stroke="#67C7FF" stroke-opacity=".48"/><text x="652.5" y="245" text-anchor="middle" fill="#D6EDFF">Laravel · REST APIs</text>
+    <rect x="718" y="229" width="115" height="24" rx="12" fill="#102B48" stroke="#67C7FF" stroke-opacity=".48"/><text x="775.5" y="245" text-anchor="middle" fill="#D6EDFF">PostgreSQL · SQL</text>
+    <rect x="842" y="229" width="68" height="24" rx="12" fill="#102B48" stroke="#67C7FF" stroke-opacity=".48"/><text x="876" y="245" text-anchor="middle" fill="#D6EDFF">Docker</text>
+  </g>
+
+  <path d="M380 277H1136" stroke="#A9C8EE" stroke-opacity=".2"/>
+  <g font-family="Inter, Poppins, Arial, sans-serif" font-size="11" font-weight="500" fill="#E0EDFC">
+    <a href="mailto:ardhianmaulanatanjung@gmail.com" aria-label="Email Ardhian"><g transform="translate(382 292)" stroke="#75F0C0" stroke-width="1.3"><rect width="16" height="12" rx="2.5"/><path d="m2 3 6 4 6-4"/></g><text x="406" y="303">ardhianmaulanatanjung@gmail.com</text></a>
+    <a href="https://wa.me/6282272390283" aria-label="WhatsApp Ardhian"><g transform="translate(654 290)" stroke="#75F0C0" stroke-width="1.3"><path d="M2 14 3 11a7 7 0 1 1 3 3l-4 1Z"/><path d="M6 5c.5 2.5 1.5 3.5 4 5"/></g><text x="675" y="303">+62 822-7239-0283</text></a>
+    <a href="https://www.linkedin.com/in/ardhian-maulana-tanjung-s-kom-a01382328/" aria-label="LinkedIn profile"><g transform="translate(813 291)" fill="#75F0C0"><rect width="14" height="14" rx="2"/><path d="M3 6h2v5H3zm1-3a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm3 3h2v.7c.4-.5 1-.8 1.8-.8 1.7 0 2.2 1.1 2.2 2.7V11h-2V8.7c0-.7-.1-1.4-1-1.4S9 8 9 8.7V11H7z" fill="#0B1D36"/></g><text x="835" y="303">LinkedIn</text></a>
+    <a href="https://github.com/ArdhianM6" aria-label="GitHub profile"><g transform="translate(914 290)" fill="#75F0C0"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4.1.5-.2.5-.4v-1.5c-2 .4-2.5-.8-2.5-.8-.3-.7-.7-.9-.7-.9-.6-.4 0-.4 0-.4.6 0 .9.6.9.6.5.9 1.3.6 1.7.4.1-.4.2-.7.4-.9-1.6-.2-3.2-.8-3.2-3.6 0-.8.3-1.4.7-1.9-.1-.2-.3-1 .1-1.9 0 0 .6-.2 2 .7a7 7 0 0 1 3.7 0c1.4-.9 2-.7 2-.7.4.9.2 1.7.1 1.9.5.5.7 1.1.7 1.9 0 2.8-1.6 3.4-3.2 3.6.3.2.5.6.5 1.2v2.3c0 .2.1.5.5.4A8 8 0 0 0 8 0Z"/></g><text x="936" y="303">GitHub</text></a>
+  </g>
+
+  <!-- Small system diagram makes the front end, API, and database visible at a glance. -->
+  <g stroke="#73B5FF" stroke-opacity=".52" stroke-width="1.4" fill="#0D2541" fill-opacity=".56">
+    <rect x="1220" y="104" width="74" height="58" rx="9"/><rect x="1333" y="104" width="74" height="58" rx="9"/><rect x="1446" y="104" width="74" height="58" rx="9"/>
+    <path d="M1294 133h39m74 0h39"/><path d="m1325 129 8 4-8 4m113-8 8 4-8 4" fill="#75F0C0" stroke="#75F0C0"/>
+    <path d="M1257 162v39h226v-39" stroke-dasharray="3 5"/>
+  </g>
+  <g font-family="Inter, Poppins, Arial, sans-serif" text-anchor="middle">
+    <text x="1257" y="129" fill="#E0EDFC" font-size="12" font-weight="700">UI</text><text x="1257" y="148" fill="#AFC8E9" font-size="9">React</text>
+    <text x="1370" y="129" fill="#E0EDFC" font-size="12" font-weight="700">API</text><text x="1370" y="148" fill="#AFC8E9" font-size="9">Node · Laravel</text>
+    <text x="1483" y="129" fill="#E0EDFC" font-size="12" font-weight="700">DATA</text><text x="1483" y="148" fill="#AFC8E9" font-size="9">PostgreSQL</text>
+    <circle cx="1257" cy="202" r="3" fill="#75F0C0"/><circle cx="1370" cy="202" r="3" fill="#75F0C0"/><circle cx="1483" cy="202" r="3" fill="#75F0C0"/>
+  </g>
+</svg>

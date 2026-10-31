@@ -1,0 +1,10 @@
+{
+  "name": "expense-tracker",
+  "private": true,
+  "scripts": {
+    "dev": "node dev.js"
+  },
+  "dependencies": {
+    "express-rate-limit": "^8.5.2"
+  }
+}
